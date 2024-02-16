@@ -6,22 +6,55 @@ from RPA.HTTP import HTTP
 from RPA.PDF import PDF
 from RPA.Archive import Archive
 from RPA.FileSystem import FileSystem
+from RPA.Assistant import Assistant
 
-testmode = False
+#unattended = False
+#testmode = False
+website_url = "https://robotsparebinindustries.com/#/robot-order"
 receipts_dir = "output/receipts"
 receipts_zip = "output/receipts.zip"
 
-@task
-def order_robots_from_RobotSpareBin():
+@task()
+def order_robots_from_RobotSpareBin_unattended():
     """
     Orders robots from RobotSpareBin Industries Inc.
+    Runs in unattended mode, which assumes the order site URL.
+    """
+    url = website_url
+    main(url, False)
+
+@task()
+def order_robots_from_RobotSpareBin_attended():
+    """
+    Orders robots from RobotSpareBin Industries Inc.
+    Runs in attended mode, which asks for the URL.
+    """
+    url = user_input_task()
+    main(url, True)
+
+def user_input_task():
+    assistant = Assistant()
+    assistant.add_heading("Input from user")
+    assistant.add_text("Enter URL for robot ordering website")
+    assistant.add_text_input("text_input", placeholder="Please enter URL", default=website_url)
+    assistant.add_submit_buttons("Submit", default="Submit")
+    result = assistant.run_dialog()
+    url = result.text_input
+    return url
+
+def main(url, attended):
+    """
+    Clears old receipts from previous run.
+    Opens website to order the bots.
+    Downloads Excel list containing the orders.
+    Loops through each order in the list and uses the site to submit the order.
     Saves the order HTML receipt as a PDF file.
     Saves the screenshot of the ordered robot.
     Embeds the screenshot of the robot to the PDF receipt.
     Creates ZIP archive of the receipts and the images.
     """
     delete_old_receipts()
-    open_robot_order_website()
+    open_robot_order_website(url, attended)
     orders = get_orders()
     for order in orders:
         print(order)
@@ -39,13 +72,13 @@ def delete_old_receipts():
     if lib.does_file_exist(receipts_zip):
         lib.remove_file(receipts_zip)
 
-def open_robot_order_website():
+def open_robot_order_website(url, testmode=False):
     """ Opens the ordering website """
     if testmode:
         browser.configure(
             slowmo=100,
         )
-    browser.goto("https://robotsparebinindustries.com/#/robot-order")
+    browser.goto(url)
 
 def get_orders():
     """ Gets the CSV file with order information and returns it as a table """

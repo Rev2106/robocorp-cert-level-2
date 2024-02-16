@@ -2,8 +2,10 @@
 # https://github.com/robocorp/rcc/blob/master/docs/recipes.md#what-is-in-robotyaml
 
 tasks:
-  Run Task:
-    shell: python -m robocorp.tasks run tasks.py
+  Unattended Task:
+    shell: python -m robocorp.tasks run tasks.py -t order_robots_from_RobotSpareBin_unattended
+  Attended Task:
+    shell: python -m robocorp.tasks run tasks.py -t order_robots_from_RobotSpareBin_attended
 
 environmentConfigs:
   - environment_windows_amd64_freeze.yaml
